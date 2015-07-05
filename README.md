@@ -7,7 +7,7 @@ Manage groups of forms!  Use to:
 - display/extract data about the group of forms.
 
 ## why would i use this?
-Use this if you need to present a series of [forms](AmpersandJS/ampersand-form-view) to a user, but wish to collect the data from the full form set all at once.  Often times a client may need to go through several pages/views to fill in all of their information in non-trivial transactions.  This package makes it easy to present several forms, then agregate the composite result into a single js object.  Under the same thought, it is an excellent questionairre foundation.
+Use this if you need to present a series of [forms](AmpersandJS/ampersand-form-view) to a user, but wish to collect the data from the full form set all at once.  Often times a client may need to go through several pages/views to fill in all of their information in non-trivial transactions.  This package makes it easy to present several forms, then agregate the composite result into a single js object.  Under the same thought, it is an excellent questionnaire foundation.
 
 In a nutshell, this package can be used to manage various forms as though they were subsets of a larger, grander form.
 
@@ -18,7 +18,7 @@ The demo is tightly coupled to all of the examples used in the tests.  Run `npm 
 
 ### methods
 
-#### construtor(opts)
+#### constructor(opts)
 - autoAppend (boolean // default: true)
     - add FormView to form-manager-view container, vs. allowing the FormView to bind to it's own el
 - completeCallback (Function // default: noop)
@@ -54,12 +54,5 @@ Sets the View's switcher to the requested form.  Throws Error if the requested F
 - `current` [FormView] - current form rendered by view
 - `remaining` [Array] - returns an array of invalid form views
 
-**ToDo**, change from checking `valid` to `complete` or `submitted`, if we can make them available in FormView
-
 # Todo
-
-* Convert ampersand-form-view dependency to upstream once [3.0.0 PR](https://github.com/AmpersandJS/ampersand-form-view/pull/35) *and* `autoRender: false` support make it in to core
-* `eagerLoad` ToDos
-* Use better indicator that a form is complete than `valid`
-* Better support for some ampersand fields that currently don't report a valid value.
-* Add cached mixin, extend FormView, or PR FormView for setting `completed` on the Form for improving this module's `complete` accuracy
+* `eagerLoad: all` support (lo-pro)
