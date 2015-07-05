@@ -1,4 +1,4 @@
-[ ![Codeship Status for cdaringe/ampersand-form-manager-view](https://codeship.com/projects/dd792fa0-0511-0133-1aec-265ba245c2c5/status?branch=master)](https://codeship.com/projects/89424)0607)
+[ ![Codeship Status for cdaringe/ampersand-form-manager-view](https://codeship.com/projects/dd792fa0-0511-0133-1aec-265ba245c2c5/status?branch=master)](https://codeship.com/projects/89424)
 
 # ampersand-form-manager-view
 Manage groups of forms!  Use to:
