@@ -1,0 +1,8 @@
+TODO
+- trash `this.title`
+- trash assigning this.el? that should happen in ampersand-view
+- in constructor, detect formContainer Element or string hook
+    - in render, use ref as set above.
+    - update README about hook in formContainer
+    - update README `template` about `data-hook=form-container` reference, as it can be overridden
+        - scratch that, simply trash `template`, but make notes about it above

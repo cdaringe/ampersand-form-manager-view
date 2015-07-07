@@ -10,7 +10,7 @@ module.exports = View.extend({
         '<div data-hook="form-container"></div>'
     ].join(''),
     props: {
-        'formSwap': 'any'
+        'formsChanged': 'any'
     },
     collections: {
         forms: Collection,
@@ -18,7 +18,7 @@ module.exports = View.extend({
     },
     derived: {
         complete: {
-            deps: ['formSwap'],
+            deps: ['formsChanged'],
             fn: function () {
                 var allComplete = this.forms.every(function(form) {
                     return form.valid;
@@ -30,7 +30,7 @@ module.exports = View.extend({
             }
         },
         completed: {
-            deps: ['formSwap'],
+            deps: ['formsChanged'],
             fn: function () {
                 return  this.forms.filter(function(form) {
                     return !form.valid;
@@ -38,7 +38,7 @@ module.exports = View.extend({
             }
         },
         remaining: {
-            deps: ['formSwap'],
+            deps: ['formsChanged'],
             fn: function () {
                 return  this.forms.filter(function(form) {
                     return !form.valid;
@@ -91,6 +91,7 @@ module.exports = View.extend({
         if (formData) { this.formData.add(formData); }
     },
     checkComplete: function () {
+        this.formsChanged = Date();
     },
     draw: function () {
         this.switcher.set(this.current);
@@ -181,7 +182,6 @@ module.exports = View.extend({
         }
         if (draw && this.rendered) { this.draw(); }
         console.log('ending: ' + this.current ? this.current.cid : 'none');
-        this.formSwap = Date();
         return this;
     },
     /**
