@@ -55,22 +55,18 @@ module.exports = View.extend({
         }
     },
     initialize: function (opts) {
-        opts = opts || {};
         this.el = opts.el;
-        this.title = opts.title || '';
         this.autoAppend = opts.autoAppend || true;
-        this.eagerLoad = opts.eagerLoad !== undefined ? opts.eagerLoad : true;
+        this.completeCallback = opts.completeCallback || this.completeCallback || noop;
         this.cycle = opts.cycle || false;
+        this.eagerLoad = opts.eagerLoad !== undefined ? opts.eagerLoad : true;
+        this.formContainer = result(opts, 'formContainer');
+        this.forms = new Collection();
+        (opts.forms || result(this, 'forms') || []).forEach(function (form) { this.addForm(form); }.bind(this));
         this.freezeState = opts.freezeState !== undefined ? opts.freezeState : true;
 
         // storage for our forms
-        this.forms = new Collection();
         this.formData = new Collection();
-
-        this.completeCallback = opts.completeCallback || this.completeCallback || noop;
-
-        // add all forms
-        (opts.forms || result(this, 'forms') || []).forEach(function (form) { this.addForm(form); }.bind(this));
 
         // set current form
         if (opts.value) { this.setForm(opts.value); }
@@ -80,10 +76,11 @@ module.exports = View.extend({
     },
     render: function () {
         this.renderWithTemplate();
-        this.formContainer = this.queryByHook('form-container');
+        this.formContainer = this.formContainer || this.queryByHook('form-container');
         this.switcher = new ViewSwitcher(this.formContainer);
         if (this.formContainer && this.eagerLoad) {
             this._eagerLoad();
+            this.formSwap = Date();
         }
     },
     addForm: function (formView, formData) {

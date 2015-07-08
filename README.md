@@ -29,14 +29,12 @@ The demo is tightly coupled to all of the examples used in the tests.  Run `npm 
     - `true` //=> loads first form
     - `'all'` //=> loads all forms
     - `function (formsCollection, CurrentView) { ... }` //=> user specific actions to be executed at load time.
-- formContainer (Element)
-    - node which package renders FormViews into
+- formContainer (Element|string|function)
+    - node which package renders FormViews into. string is a `data-hook` reference to the node, and function
 - forms (Collection|array|Function)
     - collection of forms to render in view.  Function must return Collection or array.  Async not yet supported (PR welcomed).
 - freezeState (boolean // default: true)
     - on each next/prev scroll through the form collection, does a `form.reset`
-- template [String|Function]
-    Template must contain an element with `data-hook="form-container"` to render the forms in *if* the view is to be rendered.  The default view may be used
 - value [FormView]
     default form loaded in view
 
@@ -53,6 +51,10 @@ Sets the View's switcher to the requested form.  Throws Error if the requested F
 - `completed` [Array] - returns an array of valid form views
 - `current` [FormView] - current form rendered by view
 - `remaining` [Array] - returns an array of invalid form views
+
+### usage
+- When extending FormManagerView to customize the `template ([String|Function])`, ensure that it contain an element with `data-hook="form-container"` to render the forms in *if* the view is to be rendered.  The default view may be used, or, if you may use `formContainer` in the constructor instead.
+
 
 # Todo
 * `eagerLoad: all` support (lo-pro)
