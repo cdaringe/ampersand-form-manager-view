@@ -2,15 +2,22 @@
 var Collection = require('ampersand-collection');
 var View = require('ampersand-view');
 var result = require('lodash.result');
+var assign = require('lodash.assign');
+var flatten = require('lodash.flatten');
+var isString = require('lodash.isstring');
 var ViewSwitcher = require('ampersand-view-switcher');
-var noop = function () {};
+var bindings = require('ampersand-dom-bindings');
+var noop = function(){};
 
 module.exports = View.extend({
     template: [
         '<div data-hook="form-container"></div>'
     ].join(''),
     props: {
-        'formSwap': 'any'
+        'current': 'state'
+    },
+    session: {
+        fieldUpdate: 'any'
     },
     collections: {
         forms: Collection,
@@ -18,7 +25,7 @@ module.exports = View.extend({
     },
     derived: {
         complete: {
-            deps: ['formSwap'],
+            deps: ['fieldUpdate'],
             fn: function () {
                 var allComplete = this.forms.every(function(form) {
                     return form.valid;
@@ -27,27 +34,40 @@ module.exports = View.extend({
                     this.completeCallback();
                 }
                 return allComplete;
-            }
+            },
+            cache: false
         },
         completed: {
-            deps: ['formSwap'],
+            deps: ['fieldUpdate'],
             fn: function () {
-                return  this.forms.filter(function(form) {
-                    return !form.valid;
+                return this.forms.filter(function(form) {
+                    return form.valid;
                 });
-            }
+            },
+            cache: false
         },
         remaining: {
-            deps: ['formSwap'],
+            deps: ['fieldUpdate'],
             fn: function () {
-                return  this.forms.filter(function(form) {
+                return this.forms.filter(function(form) {
                     return !form.valid;
                 });
-            }
+            },
+            cache: false
         },
         data: {
+            deps: ['fieldUpdate'],
             fn: function() {
-                return  this.forms.map(function(form) {
+                // console.dir(Date()); // TODO bug1 - this doesn't get hit reliably
+                // when `fieldUpdate` changed.  see the other ref to `bug1`.  the event
+                // fieldUpdate event is consistently hit, but the derived is not repeatably
+                // updated
+                if (this.singleObject) {
+                    return this.forms.reduce(function (prev, form) {
+                        return assign(prev, form.data);
+                    }, {});
+                }
+                return this.forms.map(function(form) {
                     return form.data;
                 });
             },
@@ -60,13 +80,28 @@ module.exports = View.extend({
         this.completeCallback = opts.completeCallback || this.completeCallback || noop;
         this.cycle = opts.cycle || false;
         this.eagerLoad = opts.eagerLoad !== undefined ? opts.eagerLoad : true;
-        this.formContainer = result(opts, 'formContainer');
+        this.formContainer = opts.formContainer;
         this.forms = new Collection();
         (opts.forms || result(this, 'forms') || []).forEach(function (form) { this.addForm(form); }.bind(this));
         this.freezeState = opts.freezeState !== undefined ? opts.freezeState : true;
+        this.singleObject = !!opts.singleObject;
+        this.validOnly = !!opts.validOnly;
 
         // storage for our forms
         this.formData = new Collection();
+
+        // set listeners to update the comprehensive `.data` member on every field update
+        // assuming that the field is the current form (only works when rendering one form)
+        // at a time.
+        this.setFieldUpdate = function() {
+            this.fieldUpdate = Date();
+        }.bind(this);
+        this.on('change:current', function bindFormUpdateListeners() {
+            // console.dir(Date()); // TODO bug1 - this DOES get hit reliably
+            // when `fieldUpdate` changed.
+            this.current.off('all', this.setFieldUpdate, this);
+            this.current.on('all', this.setFieldUpdate, this);
+        }.bind(this));
 
         // set current form
         if (opts.value) { this.setForm(opts.value); }
@@ -76,11 +111,14 @@ module.exports = View.extend({
     },
     render: function () {
         this.renderWithTemplate();
-        this.formContainer = this.formContainer || this.queryByHook('form-container');
+        if (isString(this.formContainer)) {
+            this.queryByHook(this.formContainer);
+        } else {
+            this.formContainer = this.formContainer || this.queryByHook('form-container');
+        }
         this.switcher = new ViewSwitcher(this.formContainer);
         if (this.formContainer && this.eagerLoad) {
             this._eagerLoad();
-            this.formSwap = Date();
         }
     },
     addForm: function (formView, formData) {
@@ -90,6 +128,15 @@ module.exports = View.extend({
     checkComplete: function () {
     },
     draw: function () {
+        // because we keep &-View instances in memory, on removal, some traits are removed.
+        // Thus we must reinitialize those features manually
+        flatten([this.current, this.current._fieldViewsArray]).forEach(function restoreBindings(view) {
+            view._parsedBindings = bindings(view.bindings, view);
+            view._initializeBindings();
+            view._initializeSubviews();
+        });
+        /* end &-View re-init */
+
         this.switcher.set(this.current);
         return this;
     },
@@ -151,6 +198,7 @@ module.exports = View.extend({
     _cycle: function(dir, draw) {
         var i;
         if (!this.forms.length) { return this; }
+        if (this.validOnly && !this.current.valid) { return this; }
         draw = draw === undefined ? true : draw;
         i = this.current ? this.forms.indexOf(this.current) : 0;
         if (i < 0) { throw new Error('current form not found in forms collection'); }
@@ -177,8 +225,6 @@ module.exports = View.extend({
             this.current.reset();
         }
         if (draw && this.rendered) { this.draw(); }
-        console.log('ending: ' + this.current ? this.current.cid : 'none');
-        this.formSwap = Date();
         return this;
     },
     /**

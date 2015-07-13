@@ -1,85 +1,91 @@
 'use strict';
 var FMView = require('./ampersand-form-manager-view');
 var forms = require('./demo-forms.js');
-var isArray = require('lodash.isarray');
 var template = [
     '<div data-hook="demo-container">',
-        '<div data-hook="demo-log">',
-            '<span data-hook=log></span>',
-        '</div>',
+        '<div class="alert alert-success" data-hook=log>All forms complete</div>',
         '<div id=main data-hook=main>',
-            '<div class=main-nav class=main-nav data-hook="demo-nav-left">',
-                '<button type=button data-hook=nav-back><<</button>',
-            '</div>',
-            '<div class=main-content data-hook="form-container"></div>',
-            '<div class=main-nav data-hook="demo-nav-right">',
-                '<button type=button data-hook=nav-forward>>></button>',
-            '</div>',
+            '<div class="well fixed-panel" data-hook="form-container"></div>',
         '</div>',
+        '<div class="clearfix" data-hook="nav-container">',
+            '<button type=button class="btn btn-default pull-left" data-hook=nav-previous>&larr; Previous</button>',
+            '<button type=button class="btn btn-default pull-right" data-hook=nav-next>Next &rarr;</button>',
+        '</div>',
+        '<hr>',
+        '<h3>Report</h3>',
         '<div data-hook="stats>',
             '<dl class="dl-horizontal">',
-                '<dt>remaining: </dt>',
-                '<dd data-hook=remaining>.</dd>',
-                '<dt>current: </dt>',
+                '<dt>remaining (#-invalid):</dt>',
+                '<dd>',
+                    '<span data-hook=remaining>?</span>',
+                    '<span>/</span>',
+                    '<span data-hook=form-count>?</span>',
+                '</dd>',
+                '<dt>current:</dt>',
                 '<dd data-hook=current-cid></dd>',
-                '<dt>complete: </dt>',
+                '<dt>complete:</dt>',
                 '<dd data-hook=complete></dd>',
+                '<dt>output data preview (singleObject mode enabled):</dt>',
+                '<dd><pre data-hook=output-preview></pre></dd>',
             '</dl>',
         '</div>',
     '</div>'
 ].join('\n');
 
-var logInterval;
-
 var DemoFMView = FMView.extend({
     bindings: {
-        complete: {
-            type: 'text',
-            hook: 'complete'
-        },
-        'currentCid': {
+        complete: [
+            {
+                type: function(el, value, previousValue) { // jshint ignore:line
+                    el.innerHTML = value ? 'Yep, all done!' : 'Not yet, keep fillin\' out forms!';
+                },
+                hook: 'complete'
+            }, {
+                type: 'toggle',
+                hook: 'log'
+            }
+        ],
+        'current.cid': {
             type: 'text',
             hook: 'current-cid'
         },
-        log: {
-            type: function(el, value, prevValue) { // jshint ignore:line
-                if (!isArray(value)) {
-                    debugger;
-                    return;
-                    // throw new TypeError('log must be appended to (it\'s an array!)');
-                }
-                // cycle thru log messages
-                if (!logInterval) {
-                    setInterval(function setLogContent() {
-                        if (!value[0]) {
-                            clearInterval(logInterval);
-                            return;
-                        }
-                        el.textContent = value[0];
-                        value.shift();
-                    }, 5000);
-                }
+        'current.valid': {
+            type: 'booleanClass',
+            hook: 'nav-container',
+            no: 'invalid-nav'
+        },
+        data: {
+            type: function(el, value, previousValue) { // jshint ignore:line
+                el.textContent = JSON.stringify(value, null, 2);
             },
-            hook: 'log'
+            hook: 'output-preview'
+        },
+        forms: {
+            type: function(el, value, previousValue) { // jshint ignore:line
+                el.innerHTML = value.length;
+            },
+            hook: 'form-count'
         },
         remaining: {
-            type: 'text',
+            type: function(el, value, previousValue) { // jshint ignore:line
+                el.innerHTML = value.length;
+            },
             hook: 'remaining'
         }
     },
     events: {
-        'click [data-hook=nav-back]': 'prev',
-        'click [data-hook=nav-forward]': 'next'
+        'click [data-hook=nav-previous]': 'prev',
+        'click [data-hook=nav-next]': 'next'
     },
     template: template
 });
+var formz = window.formz = [new forms.First(), new forms.Second(), new forms.Third()];
 var demo = window.demo = new DemoFMView({
-    completeCallback: function() {
-        this.log.push('All forms valid!');
-    },
     cycle: true,
+    dataObject: true,
     el: document.querySelector('[data-hook=demo]'),
     eagerLoad: true,
-    forms: [new forms.First(), new forms.Second(), new forms.Third()] // TODO MUST ADD FORMSSSSZZZ
+    forms: formz,
+    validOnly: true
 });
 demo.render();

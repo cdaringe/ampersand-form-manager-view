@@ -20,23 +20,26 @@ The demo is tightly coupled to all of the examples used in the tests.  Run `npm 
 
 #### constructor(opts)
 - autoAppend (boolean // default: true)
-    - add FormView to form-manager-view container, vs. allowing the FormView to bind to it's own el
+    - add forms (FormView instances) to container, vs. allowing each form to bind to its own el
 - completeCallback (Function // default: noop)
     - Fired when all forms are complete (valid).  This will fire immediately if all forms are valid on initialization
 - cycle (boolean // default: false)
     - determines whether the form set is circular (e.g. next() sets the current form to the first form when the last form selected)
 - eagerLoad (boolean) Render form in `formContainer` on init
     - `true` //=> loads first form
-    - `'all'` //=> loads all forms
     - `function (formsCollection, CurrentView) { ... }` //=> user specific actions to be executed at load time.
-- formContainer (Element|string|function)
-    - node which package renders FormViews into. string is a `data-hook` reference to the node, and function
+- formContainer (Element|string|function // default: 'form-container')
+    - node that forms rendered into. if a string is provided, it must be a ref to a `data-hook` attr on a node.
 - forms (Collection|array|Function)
     - collection of forms to render in view.  Function must return Collection or array.  Async not yet supported (PR welcomed).
 - freezeState (boolean // default: true)
     - on each next/prev scroll through the form collection, does a `form.reset`
+- singleObject: (boolean // default: false)
+    - data by default is returned as an array of objects (results of all forms `.data` calls).  This mode flattens all data into a single object.
 - value [FormView]
     default form loaded in view
+- validOnly (boolean // default: false)
+    - next/prev form calls will not be allowed to change form view unless current form valid
 
 #### next() / prev()
 Sets the view to the next/previous form.  If no forms available, does nothing. If `cycle` is permitted on the form manager view, the views will rotate circularly.
@@ -57,4 +60,5 @@ Sets the View's switcher to the requested form.  Throws Error if the requested F
 
 
 # Todo
+* KNOWN BUG: discrepancy between rendered `afmv.data` and all composite `form`s `.data`s. events dropped?  see `bug1` in src
 * `eagerLoad: all` support (lo-pro)

@@ -1,25 +1,114 @@
 var Form = require('ampersand-form-view');
-var InputView =      require('ampersand-input-view');
-var CheckboxView =   require('ampersand-checkbox-view');
-var ArrayInputView = require('ampersand-array-input-view');
-var FloatingInputView = require('ampersand-floatinglabel-input-view');
+var InputView = require('ampersand-input-view');
+var CheckboxView = require('ampersand-checkbox-view');
+var uniqueId = require('lodash.uniqueid');
+var assign = require('lodash.assign');
 
-var checkTemplate = [
+var cbvTemplate = [
     '<div class="checkbox">',
         '<label>',
-            '<input type="checkbox">',
-            '<span data-hook="label"></span>',
+            '<input type="checkbox" >',
+            '<span data-hook=label></span>',
         '</label>',
-        '<div data-hook="message-container" class="message message-below message-error">',
+        '<div data-hook="message-container" class="message message-below message-error help-block">',
             '<p data-hook="message-text"></p>',
         '</div>',
-    '</div>'
+    '</div>',
 ].join('');
 
-module.exports.First= Form.extend({
+var DemoFormView = Form.extend({
+    template: [
+        '<div data-hook=forms-with-meta-wrapper>',
+            '<form data-hook=field-container>',
+            '</form>',
+            '<span class="form-validator alert" data-hook="form-valid">',
+            '</span>',
+        '</div>'
+    ].join(''),
+    initialize: function() {
+        Form.prototype.initialize.apply(this, arguments);
+        var updateValidityBox = function() {
+            var el = this.queryByHook('form-valid');
+            // TODO `valid` binding doesn't work? wtf
+            el.textContent = 'Form is ' + (this.valid ? 'valid!' : 'invalid');
+            el.classList[this.valid ? 'add' : 'remove']('alert-success');
+            el.classList[!this.valid ? 'add' : 'remove']('alert-warning');
+        }.bind(this);
+        this.on('change:valid', updateValidityBox);
+        this.on('render', updateValidityBox);
+    }
+});
+
+var DemoCheckboxView = CheckboxView.extend({
+    template: cbvTemplate,
+    bindings: assign(InputView.prototype.bindings, {
+        uid: [
+            {
+                type: 'attribute',
+                name: 'id',
+                hook: 'input'
+            }, {
+                type: 'attribute',
+                name: 'for',
+                hook: 'label'
+            }
+        ]
+    }),
+    props: {
+        uid: 'string'
+    },
+    initialize: function() {
+        CheckboxView.prototype.initialize.apply(this, arguments);
+        this.uid = uniqueId('demo_checkbox_');
+    }
+});
+
+var DemoInputView = InputView.extend({
+    template: [
+        '<div class="form-group" data-hook=form-group>',
+            '<label for="?" data-hook="label"></label>',
+            '<input id="??" class="form-control" data-hook="input">',
+            '<div data-hook="message-container" class="message message-below message-error help-block">',
+                '<p data-hook="message-text"></p>',
+            '</div>',
+        '</div>'
+    ].join(''),
+    bindings: assign(InputView.prototype.bindings, {
+        uid: [
+            {
+                type: 'attribute',
+                name: 'id',
+                hook: 'input'
+            }, {
+                type: 'attribute',
+                name: 'for',
+                hook: 'label'
+            }
+        ],
+        'showMessage': [
+            {
+                type: 'toggle',
+                hook: 'message-container'
+            }, {
+                type: 'booleanClass',
+                yes: 'has-error',
+                hook: 'form-group'
+            }
+        ]
+    }),
+    props: {
+        uid: 'string'
+    },
+    initialize: function() {
+        InputView.prototype.initialize.apply(this, arguments);
+        this.uid = uniqueId('demo_input_');
+    }
+});
+
+module.exports.First = DemoFormView.extend({
     fields: function () {
         return [
-            new InputView({
+            new DemoInputView({
                 label: 'Favorite npm module: ',
                 name: 'favorite',
                 value: this.model && this.model.name,
@@ -27,34 +116,26 @@ module.exports.First= Form.extend({
                 required: true,
                 parent: this
             }),
-            new ArrayInputView({
-                label: 'Notable mentions: ',
-                name: 'colors',
-                placeholder: 'ampersand-state',
+            new DemoCheckboxView({
+                label: 'NPM >> Bower\?',
+                name: 'npmVsBower',
                 parent: this,
-                numberRequired: 1,
-                tests: [
-                    function (val) {
-                        if (val.trim() !== 'ampersand-state') {
-                            return 'Sure, "' + val + '" is probably a good module, ' +
-                                'but are you sure ampersand-state isn\'t your favorite?';
-                        }
-                    }
-                ]
-            })
+                template: cbvTemplate
+            }),
         ];
     }
 });
 
-module.exports.Second = Form.extend({
+module.exports.Second = DemoFormView.extend({
     fields: function () {
         return [
-            new FloatingInputView({
+            new DemoInputView({
                 type: 'email',
                 name: 'email',
                 label: 'Email',
                 placeholder: 'Email',
                 value: '',
+                required: true,
                 tests: [
                     function(val) {
                         if (val.length < 5) {
@@ -63,11 +144,12 @@ module.exports.Second = Form.extend({
                     }
                 ]
             }),
-            new FloatingInputView({
+            new DemoInputView({
                 type: 'password',
                 name: 'password',
                 label: 'Password',
                 placeholder: 'Password',
+                required: true,
                 value: '',
                 tests: [
                     function( val ) {
@@ -81,22 +163,22 @@ module.exports.Second = Form.extend({
     }
 });
 
-module.exports.Third = Form.extend({
+module.exports.Third = DemoFormView.extend({
     fields: function () {
         return [
-            new CheckboxView({
+            new DemoCheckboxView({
                 label: 'Is this the final form\?',
                 name: 'final',
                 required: true,
                 parent: this,
-                template: checkTemplate
+                template: cbvTemplate
             }),
-            new CheckboxView({
-                label: 'Do you see the value\?',
+            new DemoCheckboxView({
+                label: 'Do you see the value populated, from last visit\?',
                 name: 'valueable',
                 required: true,
                 parent: this,
-                template: checkTemplate
+                template: cbvTemplate
             }),
         ];
     }
