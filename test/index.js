@@ -163,6 +163,7 @@ suite('form set validity', function (t) {
         view.forms.forEach(function(frm, i) {
             t.notOk(frm.rendered, 'eagerLoad(function): form ' + i + ' not rendered');
         });
+        t.end();
     });
 
 });
