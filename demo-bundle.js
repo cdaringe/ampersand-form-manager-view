@@ -519,7 +519,7 @@ var DemoFMView = FMView.extend({
 var formz = window.formz = [new forms.First(), new forms.Second(), new forms.Third()];
 var demo = window.demo = new DemoFMView({
     cycle: true,
-    dataObject: true,
+    singleObject: true,
     el: document.querySelector('[data-hook=demo]'),
     eagerLoad: true,
     forms: formz,
