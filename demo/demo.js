@@ -3,11 +3,12 @@
  * This is a great way not only to view your forms, but also debug your tests.
  * Simply modify your dummy-form example function (maybe slap a debugger; in there),
  * and refresh the demo to get goin!
+ *
+ * This is _NOT_ the github.io demo.  This is a series of micro-demos used as test seeds
  */
 
 var seeds = require('../test/test-seeds.js');
 var each = require('lodash/collection/each');
-var View = window.View = require('ampersand-view'); // TODO DELETE DEBUGGINS
 var body = document.body,
     page, padCol;
 

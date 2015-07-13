@@ -6,6 +6,9 @@ Manage groups of forms!  Use to:
 - gather meta about a collection of forms, or
 - display/extract data about the group of forms.
 
+# demo
+See github.io page here: [cdaringe.github.io/ampersand-form-manager-view](http://cdaringe.github.io/ampersand-form-manager-view/)
+
 ## why would i use this?
 Use this if you need to present a series of [forms](AmpersandJS/ampersand-form-view) to a user, but wish to collect the data from the full form set all at once.  Often times a client may need to go through several pages/views to fill in all of their information in non-trivial transactions.  This package makes it easy to present several forms, then agregate the composite result into a single js object.  Under the same thought, it is an excellent questionnaire foundation.
 
