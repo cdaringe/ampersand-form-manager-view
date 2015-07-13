@@ -4,6 +4,7 @@
   "description": "Manage groups of forms",
   "main": "ampersand-form-manager-view.js",
   "scripts": {
+    "build-demo": "browserify demo.js > demo-bundle.js",
     "demo": "beefy demo/demo.js:demo.js --cwd demo",
     "lint": "jshint ampersand-form-manager-view",
     "test": "testem ci",
@@ -58,6 +59,7 @@
   "pre-commit": [
     "lint",
     "validate",
+    "build-demo",
     "test"
   ]
 }
